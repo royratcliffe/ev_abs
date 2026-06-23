@@ -13,7 +13,6 @@
 %   Redis stream entry.
 input_event(Entry) :-
     debug(input_event(entry), '~k', [Entry]),
-    setting(device, Device),
     redis{device:Device,
           typename:'EV_ABS',
           codename:CodeName,
@@ -42,7 +41,7 @@ input_event(Entry) :-
     % broadcast a half-move.
     other_axis(Axis, OtherAxis),
     (   redis(default, get(ev_abs:Stick:OtherAxis), OtherValue)
-    ->  redis(default, xadd(ev_abs, *, stick, Stick, Axis, Value1, OtherAxis, OtherValue), _)
+    ->  redis(default, xadd(ev_abs, *, device, Device, stick, Stick, Axis, Value1, OtherAxis, OtherValue), _)
     ;   true
     ).
 input_event(_).
