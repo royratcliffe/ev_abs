@@ -138,17 +138,22 @@ input_event(Entry) :-
     ->  Value1 is ((Value - Minimum) / (Maximum - Minimum)) * 2 - 1
     ;   Value1 is (Value - Minimum) / (Maximum - Minimum)
     ),
-    (   redis(default, get(ev_abs:Stick:Axis), Value0)
+    setting(ev_abs_key, Key),
+    (   redis(default, get(Key:Stick:Axis), Value0)
     ->  debug(ev(abs), '~w ~w: ~w --> ~w', [Stick, Axis, Value0, Value1])
     ;   debug(ev(abs), '~w ~w: ~w', [Stick, Axis, Value1])
     ),
-    redis(default, set(ev_abs:Stick:Axis, Value1)),
+    redis(default, set(Key:Stick:Axis, Value1)),
     % Broadcast the updated axis values to any listeners. Only broadcast if both
     % axes have values. Otherwise, only half of the stick has been moved; do not
     % broadcast a half-move.
     other_axis(Axis, OtherAxis),
-    (   redis(default, get(ev_abs:Stick:OtherAxis), OtherValue)
-    ->  redis(default, xadd(ev_abs, *, device, Device, stick, Stick, Axis, Value1, OtherAxis, OtherValue), _)
+    (   redis(default, get(Key:Stick:OtherAxis), OtherValue)
+    ->  redis(default, xadd(Key, *, device, Device, stick, Stick, Axis, Value1, OtherAxis, OtherValue), Out),
+        atomic_list_concat([Millis, _], -, Out),
+        atom_number(Millis, Millis1),
+        Millis0 is Millis1 - 5000,
+        redis(default, xtrim(Key, minid, ~, Millis0))
     ;   true
     ).
 input_event(_).
