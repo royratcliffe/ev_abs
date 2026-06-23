@@ -20,26 +20,29 @@ input_event(Entry) :-
           value:Value,
           absinfo_minimum:Minimum,
           absinfo_maximum:Maximum} :< Entry,
-    codename_stick_axis(CodeName, Stick, Axis),
+    codename_stick_axis(CodeName, StickUpper, Axis),
     !,
-    string_lower(Stick, StickLower),
+    % Convert the stick name to lower case and remove any leading or trailing
+    % underscores. For example, the stick for axis 'ABS_X' becomes 'abs'.
+    string_lower(StickUpper, StickLower),
+    split_string(StickLower, "", "_", [Stick]),
     % Normalise the value to the range. Minimum and Maximum equal the minimum
     % and maximum values for the axis, which are typically -32768 and 32767
     % respectively for joystick axes. The normalised value is in the range [-1,
     % 1]. For trigger axes, the minimum and maximum values are typically 0 and
     % 255 respectively, and the normalised value is in the range [0, 1].
     Value1 is ((Value - Minimum) / (Maximum - Minimum)) * 2 - 1,
-    (   redis(default, get(ev_abs:StickLower:Axis), Value0)
-    ->  debug(ev(abs), '~w ~w: ~w --> ~w', [StickLower, Axis, Value0, Value1])
-    ;   debug(ev(abs), '~w ~w: ~w', [StickLower, Axis, Value1])
+    (   redis(default, get(ev_abs:Stick:Axis), Value0)
+    ->  debug(ev(abs), '~w ~w: ~w --> ~w', [Stick, Axis, Value0, Value1])
+    ;   debug(ev(abs), '~w ~w: ~w', [Stick, Axis, Value1])
     ),
-    redis(default, set(ev_abs:StickLower:Axis, Value1)),
+    redis(default, set(ev_abs:Stick:Axis, Value1)),
     % Broadcast the updated axis values to any listeners. Only broadcast if both
     % axes have values. Otherwise, only half of the stick has been moved; do not
     % broadcast a half-move.
     other_axis(Axis, OtherAxis),
-    (   redis(default, get(ev_abs:StickLower:OtherAxis), OtherValue)
-    ->  redis(default, xadd(ev_abs, *, stick, StickLower, Axis, Value1, OtherAxis, OtherValue), _)
+    (   redis(default, get(ev_abs:Stick:OtherAxis), OtherValue)
+    ->  redis(default, xadd(ev_abs, *, stick, Stick, Axis, Value1, OtherAxis, OtherValue), _)
     ;   true
     ).
 input_event(_).
