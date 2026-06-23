@@ -1,3 +1,64 @@
+:- module(ev_abs, []).
+:- autoload(library(broadcast), [listen/2, unlisten/1]).
+:- autoload(library(redis), [redis_server/3, redis/3, redis/2]).
+:- autoload(library(redis_streams), [xlisten_group/5]).
+:- use_module(library(debug), [debug/3]).
+:- use_module(library(settings), [setting/4, setting/2]).
+:- use_module(xgroup).
+
+:- setting(rediscli_host, atom, env('REDISCLI_HOST', localhost),
+           'Host of the Redis server').
+:- setting(rediscli_port, integer, env('REDISCLI_PORT', 6379),
+           'Port of the Redis server').
+
+:- setting(input_event_key, atom, input_event,
+    'Redis stream key to listen to for input events').
+:- setting(input_event_group, atom, ev_abs,
+    'Redis consumer group for input events').
+:- setting(input_event_consumer, atom, env('HOSTNAME', ev_abs_consumer),
+    'Name to use for consuming input events').
+
+:- setting(ev_abs_key, atom, ev_abs,
+    'Redis stream key to publish EV_ABS events to').
+
+% Connect to Redis server at Host:Port with version 3 compatibility.
+% This assumes the Redis server is running on the specified port.
+redis_server :-
+    setting(rediscli_host, Host),
+    setting(rediscli_port, Port),
+    redis_server(default, Host:Port, [version(3)]).
+
+:- initialization(main, main).
+
+main :-
+    redis_server,
+    create_input_event_xgroup,
+    listen_to_input_event,
+    xlisten_input_event_group.
+
+create_input_event_xgroup :- create_input_event_xgroup(default).
+
+create_input_event_xgroup(Redis) :-
+    setting(input_event_key, Key),
+    setting(input_event_group, Group),
+    xgroup_create(Redis, Key, Group, [id($), mkstream(true)]).
+
+xlisten_input_event_group :- xlisten_input_event_group(default).
+
+xlisten_input_event_group(Redis) :-
+    setting(input_event_key, Key),
+    setting(input_event_group, Group),
+    setting(input_event_consumer, Consumer),
+    xlisten_group(Redis, Group, Consumer, [Key], [starts([>])]).
+
+listen_to_input_event :-
+    unlisten_to_input_event,
+    setting(input_event_key, Key),
+    listen(redis_consume(Key, Entry, _), input_event(Entry)).
+
+unlisten_to_input_event :-
+    setting(input_event_key, Key),
+    unlisten(redis_consume(Key, _, _)).
 
 %! input_event(+Entry) is det.
 % Consume input events from joysticks (or other EV_ABS devices) and update the
