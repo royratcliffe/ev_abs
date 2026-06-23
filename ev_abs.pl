@@ -12,7 +12,7 @@
 % - absinfo_maximum: The maximum value for the axis. @arg Entry The input event
 %   Redis stream entry.
 input_event(Entry) :-
-    debug(joystick(entry), '~k', [Entry]),
+    debug(input_event(entry), '~k', [Entry]),
     setting(device, Device),
     redis{device:Device,
           typename:'EV_ABS',
