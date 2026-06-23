@@ -30,8 +30,8 @@ input_event(Entry) :-
     % 255 respectively, and the normalised value is in the range [0, 1].
     Value1 is ((Value - Minimum) / (Maximum - Minimum)) * 2 - 1,
     (   redis(default, get(ev_abs:StickLower:Axis), Value0)
-    ->  debug(ev_abs, '~w ~w: ~w --> ~w', [StickLower, Axis, Value0, Value1])
-    ;   debug(ev_abs, '~w ~w: ~w', [StickLower, Axis, Value1])
+    ->  debug(ev(abs), '~w ~w: ~w --> ~w', [StickLower, Axis, Value0, Value1])
+    ;   debug(ev(abs), '~w ~w: ~w', [StickLower, Axis, Value1])
     ),
     redis(default, set(ev_abs:StickLower:Axis, Value1)),
     % Broadcast the updated axis values to any listeners. Only broadcast if both
