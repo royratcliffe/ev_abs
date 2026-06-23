@@ -30,6 +30,9 @@ redis_server :-
 
 :- initialization(main, main).
 
+:- nodebug(ev(abs)).
+:- nodebug(input_event(entry)).
+
 opt_type(v, verbose, boolean).
 opt_type(verbose, verbose, boolean).
 
