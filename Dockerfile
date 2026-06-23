@@ -3,4 +3,4 @@ RUN apk --no-cache add swi-prolog --repository=https://dl-cdn.alpinelinux.org/al
 COPY *.pl /srv/
 WORKDIR /srv
 RUN for pl in *.pl; do swipl -q -t "qcompile('$pl')"; done; rm *.pl
-ENTRYPOINT ["swipl", "-s", "ev_abs", "--"]
+ENTRYPOINT ["swipl", "ev_abs.pl", "--"]
