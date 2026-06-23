@@ -91,5 +91,4 @@ required.
 
 ## License
 
-`xgroup.pl` is released under the MIT License. See the file header for the full
-text.
+Released under the MIT License.
