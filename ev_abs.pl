@@ -30,7 +30,17 @@ redis_server :-
 
 :- initialization(main, main).
 
-main :-
+opt_type(v, verbose, boolean).
+opt_type(verbose, verbose, boolean).
+
+opt_help(verbose, 'Enable verbose output').
+
+main(Argv) :-
+    argv_options(Argv, [], Options),
+    (   option(verbose(true), Options)
+    ->  debug(ev(abs))
+    ;   true
+    ),
     redis_server,
     create_input_event_xgroup,
     listen_to_input_event,
