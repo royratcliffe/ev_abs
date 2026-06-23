@@ -30,6 +30,8 @@ redis_server :-
 
 :- initialization(main, main).
 
+% Initially disable debugging for the ev(abs) topic. It can be enabled via
+% command line --verbose option.
 :- nodebug(ev(abs)).
 :- nodebug(input_event(entry)).
 
