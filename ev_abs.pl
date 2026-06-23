@@ -91,7 +91,10 @@ input_event(Entry) :-
     % respectively for joystick axes. The normalised value is in the range [-1,
     % 1]. For trigger axes, the minimum and maximum values are typically 0 and
     % 255 respectively, and the normalised value is in the range [0, 1].
-    Value1 is ((Value - Minimum) / (Maximum - Minimum)) * 2 - 1,
+    (   Minimum < 0
+    ->  Value1 is ((Value - Minimum) / (Maximum - Minimum)) * 2 - 1
+    ;   Value1 is (Value - Minimum) / (Maximum - Minimum)
+    ),
     (   redis(default, get(ev_abs:Stick:Axis), Value0)
     ->  debug(ev(abs), '~w ~w: ~w --> ~w', [Stick, Axis, Value0, Value1])
     ;   debug(ev(abs), '~w ~w: ~w', [Stick, Axis, Value1])
