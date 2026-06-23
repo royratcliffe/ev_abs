@@ -39,7 +39,7 @@ input_event(Entry) :-
     % broadcast a half-move.
     other_axis(Axis, OtherAxis),
     (   redis(default, get(ev_abs:StickLower:OtherAxis), OtherValue)
-    ->  redis(default, xadd(ev_abs, *, stick, StickLower, Axis, Value1, OtherAxis, OtherValue))
+    ->  redis(default, xadd(ev_abs, *, stick, StickLower, Axis, Value1, OtherAxis, OtherValue), _)
     ;   true
     ).
 input_event(_).
